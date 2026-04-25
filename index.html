@@ -1,109 +1,183 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valhalla's Gate — Mundo Viking</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background: #0a0604; font-family: 'Cinzel', serif; color: #e0d0b0; }
-        
-        canvas { display: block; }
-        #canvas-container { width: 100vw; height: 100vh; display: none; background: #7aafcc; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valhalla's Gate — Mundo Viking</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{overflow:hidden;background:#0a0604;font-family:'Cinzel',serif;}
+#canvas-container{width:100vw;height:100vh;display:none;}
+canvas{display:block;}
 
-        /* ── ESTRELAS DE FUNDO ── */
-        #stars-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#login-bg{position:absolute;inset:0;background:linear-gradient(180deg,#050208 0%,#180c16 28%,#2a1406 58%,#180606 100%);}
+#stars-canvas{position:absolute;inset:0;pointer-events:none;}
+#aurora{position:absolute;top:0;left:0;width:100%;height:55%;background:linear-gradient(180deg,rgba(0,200,120,0.08) 0%,rgba(0,100,220,0.05) 35%,rgba(140,0,200,0.04) 65%,transparent 100%);animation:awave 9s ease-in-out infinite;filter:blur(22px);}
+#aurora2{position:absolute;top:8%;left:0;width:100%;height:45%;background:linear-gradient(180deg,rgba(0,240,160,0.05) 0%,rgba(60,0,200,0.06) 45%,transparent 100%);animation:awave 12s ease-in-out infinite reverse;filter:blur(32px);}
+@keyframes awave{0%,100%{transform:scaleX(1) skewY(0deg);opacity:0.6;}50%{transform:scaleX(1.08) skewY(-2deg);opacity:1;}}
+#fire-glow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:700px;height:220px;background:radial-gradient(ellipse at 50% 100%,rgba(255,110,0,0.22),transparent 70%);pointer-events:none;}
+#mountains-svg{position:absolute;bottom:0;left:0;width:100%;height:48%;pointer-events:none;}
 
-        /* ── LOGIN SCREEN ── */
-        #login-screen { 
-            position: fixed; width: 100%; height: 100%; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center; z-index: 10;
-        }
-        .login-card {
-            background: rgba(15, 10, 5, 0.95); border: 2px solid #8b5e3c; 
-            padding: 40px; border-radius: 4px; text-align: center; width: 320px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
-        input { 
-            width: 100%; padding: 12px; margin: 10px 0; background: #1a1510; 
-            border: 1px solid #4a3520; color: #f5c030; font-family: 'Cinzel';
-        }
-        button { 
-            width: 100%; padding: 12px; background: #8b2020; color: white; 
-            border: none; cursor: pointer; font-family: 'Cinzel'; font-weight: bold; margin-top: 10px;
-        }
-        button:hover { background: #aa2200; }
+/* Login Card */
+#login-card{position:relative;z-index:10;width:min(420px,93vw);background:rgba(6,3,1,0.9);border:1px solid rgba(200,140,30,0.38);border-radius:3px;padding:46px 40px 38px;box-shadow:0 0 70px rgba(180,90,0,0.12),0 0 130px rgba(180,90,0,0.06),inset 0 1px 0 rgba(200,140,30,0.18);backdrop-filter:blur(10px);}
+#login-card::before{content:'';position:absolute;top:-1px;left:-1px;width:22px;height:22px;border-top:2px solid rgba(200,140,30,0.55);border-left:2px solid rgba(200,140,30,0.55);}
+#login-card::after{content:'';position:absolute;bottom:-1px;right:-1px;width:22px;height:22px;border-bottom:2px solid rgba(200,140,30,0.55);border-right:2px solid rgba(200,140,30,0.55);}
+.emblem{text-align:center;margin-bottom:6px;}
+.emblem svg{width:76px;height:76px;filter:drop-shadow(0 0 14px rgba(245,175,35,0.5));}
+.login-title{font-family:'Cinzel Decorative',serif;font-size:27px;font-weight:700;color:#f5c030;text-align:center;letter-spacing:3px;text-shadow:0 0 24px rgba(245,180,40,0.38),0 2px 0 #200e00;margin-bottom:4px;line-height:1.2;}
+.login-sub{font-size:10px;color:rgba(200,160,80,0.65);text-align:center;letter-spacing:5px;text-transform:uppercase;margin-bottom:28px;}
+.divider{display:flex;align-items:center;gap:10px;margin-bottom:26px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(200,140,30,0.38),transparent);}
+.divider span{font-size:15px;color:rgba(200,140,30,0.55);letter-spacing:5px;}
+.field-group{margin-bottom:16px;}
+.field-label{display:block;font-size:9px;letter-spacing:3px;color:rgba(200,160,80,0.55);margin-bottom:7px;font-family:'Cinzel',serif;}
+.field-input{width:100%;background:rgba(255,255,255,0.035);border:1px solid rgba(200,140,30,0.22);border-radius:2px;padding:11px 15px;color:#e8d4a0;font-size:13px;font-family:'Cinzel',serif;letter-spacing:1px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.field-input::placeholder{color:rgba(200,160,80,0.22);font-size:11px;}
+.field-input:focus{border-color:rgba(200,140,30,0.6);box-shadow:0 0 18px rgba(200,100,0,0.14),inset 0 0 8px rgba(200,100,0,0.04);}
+.enter-btn{width:100%;padding:13px;margin-top:6px;background:linear-gradient(180deg,#c87810,#8a4800);border:1px solid rgba(245,180,40,0.38);border-radius:2px;color:#fff8e0;font-family:'Cinzel Decorative',serif;font-size:13px;letter-spacing:3px;cursor:pointer;transition:all 0.14s;position:relative;overflow:hidden;text-shadow:0 1px 0 rgba(0,0,0,0.4);}
+.enter-btn:hover{background:linear-gradient(180deg,#e08820,#a05600);box-shadow:0 0 22px rgba(200,100,0,0.38);transform:translateY(-1px);}
+.enter-btn:active{transform:translateY(1px);}
+#login-error{font-size:11px;color:#e06040;text-align:center;margin-top:11px;letter-spacing:1px;min-height:16px;font-family:'Cinzel',serif;display:none;}
+.guest-link{text-align:center;margin-top:18px;font-size:10px;color:rgba(200,160,80,0.38);letter-spacing:2px;cursor:pointer;transition:color 0.2s;font-family:'Cinzel',serif;}
+.guest-link:hover{color:rgba(200,160,80,0.8);}
+.rune-footer{text-align:center;margin-top:22px;font-size:17px;letter-spacing:8px;color:rgba(200,140,30,0.18);font-family:Georgia,serif;}
 
-        /* ── LOADING SCREEN ── */
-        #loading-screen { 
-            position: fixed; width: 100%; height: 100%; background: #0a0604; 
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
-        }
-        #loading-bar-container { width: 300px; height: 4px; background: #221a15; margin-top: 20px; }
-        #loading-bar { width: 0%; height: 100%; background: #f5c030; box-shadow: 0 0 10px #f5c030; transition: width 0.2s; }
+/* ── LOADING ── */
+#loading-screen{position:fixed;inset:0;z-index:90;background:#080402;display:none;align-items:center;justify-content:center;flex-direction:column;gap:22px;}
+.loading-rune{font-size:58px;animation:rspin 2.4s linear infinite;filter:drop-shadow(0 0 16px rgba(245,180,40,0.55));}
+@keyframes rspin{to{transform:rotate(360deg);}}
+.loading-title{font-family:'Cinzel Decorative',serif;font-size:20px;color:#f5c030;letter-spacing:4px;text-shadow:0 0 20px rgba(245,180,40,0.45);}
+.loading-bar-wrap{width:260px;height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.loading-bar{height:100%;width:0;background:linear-gradient(90deg,#c87810,#f5c030);border-radius:2px;transition:width 0.12s;}
+.loading-msg{font-size:10px;color:rgba(200,160,80,0.48);letter-spacing:3px;font-family:'Cinzel',serif;}
+.loading-welcome{font-family:'Cinzel',serif;font-size:15px;color:#e8d490;letter-spacing:2px;margin-top:2px;}
 
-        /* ── HUD / UI ── */
-        #ui-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 5; }
-        #nameplate { position: absolute; top: 20px; left: 20px; pointer-events: auto; }
-        #compass { position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; }
-        #logout-btn { position: absolute; bottom: 20px; left: 20px; width: auto; padding: 8px 15px; pointer-events: auto; }
-        #mobile-pad { position: absolute; bottom: 20px; right: 20px; pointer-events: auto; }
-        .pad-btn { width: 50px; height: 50px; background: rgba(0,0,0,0.5); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #4a3520; }
-
-        /* ── FADE OVERLAY ── */
-        #fade-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; opacity: 0; pointer-events: none; transition: opacity 0.6s; z-index: 100;
-        }
-        #fade-overlay.visible { opacity: 1; }
-    </style>
+/* ── HUD ── */
+#ui-overlay{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;display:none;}
+#nameplate{position:absolute;top:18px;left:50%;transform:translateX(-50%);background:rgba(5,2,1,0.82);border:1px solid rgba(200,140,30,0.32);border-radius:3px;padding:8px 22px;text-align:center;box-shadow:0 0 22px rgba(0,0,0,0.5);}
+#nameplate h1{font-family:'Cinzel Decorative',serif;font-size:17px;color:#f5c030;letter-spacing:3px;text-shadow:0 0 12px rgba(245,180,40,0.35);}
+#nameplate p{font-family:'Cinzel',serif;font-size:9px;color:rgba(200,160,80,0.45);letter-spacing:4px;margin-top:2px;}
+#viking-name-display{font-family:'Cinzel',serif;font-size:10px;color:#c8a050;letter-spacing:2px;margin-top:2px;}
+#compass{position:absolute;top:18px;right:22px;width:70px;height:70px;}
+#compass svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(245,180,40,0.38));}
+#controls-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;}
+.hint-key{background:rgba(5,2,1,0.82);border:1px solid rgba(200,140,30,0.28);border-radius:3px;padding:5px 12px;color:#f5c030;font-size:10px;letter-spacing:2px;font-family:'Cinzel',serif;}
+#logout-btn{position:absolute;top:18px;left:22px;pointer-events:all;background:rgba(5,2,1,0.82);border:1px solid rgba(200,140,30,0.28);border-radius:3px;padding:6px 14px;color:rgba(200,160,80,0.55);font-size:9px;letter-spacing:2px;cursor:pointer;font-family:'Cinzel',serif;transition:color 0.2s,border-color 0.2s;}
+#logout-btn:hover{color:#f5c030;border-color:rgba(200,140,30,0.6);}
+#mobile-pad{position:absolute;bottom:34px;right:22px;display:none;pointer-events:all;flex-direction:column;align-items:center;gap:4px;}
+.pad-row{display:flex;gap:4px;}
+.pad-btn{width:50px;height:50px;background:rgba(5,2,1,0.88);border:1px solid rgba(200,140,30,0.32);border-radius:7px;color:#f5c030;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-user-select:none;font-family:sans-serif;}
+.pad-btn:active{background:rgba(139,80,0,0.5);}
+@media(max-width:768px){#mobile-pad{display:flex;}#controls-hint{display:none;}}
+#fade-overlay{position:fixed;inset:0;z-index:200;background:#080402;opacity:0;pointer-events:none;transition:opacity 0.55s;}
+#fade-overlay.visible{opacity:1;pointer-events:all;}
+</style>
 </head>
 <body>
-
-<canvas id="stars-canvas"></canvas>
 <div id="fade-overlay"></div>
 
+<!-- ── LOGIN ── -->
 <div id="login-screen">
-    <div class="login-card">
-        <h1 style="color:#f5c030; margin-bottom: 20px;">Valhalla's Gate</h1>
-        <input type="text" id="viking-name" placeholder="Nome do Guerreiro">
-        <input type="text" id="clan-name" placeholder="Nome do Clã (Opcional)">
-        <p id="login-error" style="color:#ff4444; font-size: 12px; display:none; margin-bottom:10px;">Insira seu nome!</p>
-        <button onclick="handleLogin()">ENTRAR EM MIDGARD</button>
-        <button onclick="handleGuest()" style="background:#4a3520;">EXPLORAR COMO ERRANTE</button>
+  <div id="login-bg"></div>
+  <canvas id="stars-canvas"></canvas>
+  <div id="aurora"></div>
+  <div id="aurora2"></div>
+
+  <svg id="mountains-svg" viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,400 100,195 220,270 360,145 500,240 630,105 750,205 870,135 990,225 1110,155 1250,248 1440,168 1440,400" fill="#0e0508" opacity="0.95"/>
+    <polygon points="0,400 70,292 190,362 310,208 408,318 528,168 646,288 764,188 882,298 1000,198 1118,308 1246,218 1374,318 1440,268 1440,400" fill="#140a08"/>
+    <polygon points="310,208 332,228 358,210 376,222 396,208 416,222 394,238 310,238" fill="#1c1214" opacity="0.75"/>
+    <polygon points="528,168 554,193 578,172 598,185 566,206 528,206" fill="#1c1214" opacity="0.75"/>
+    <polygon points="764,188 784,212 808,192 822,206 784,224 764,216" fill="#1c1214" opacity="0.75"/>
+    <path d="M0,400 Q170,328 345,375 Q525,318 706,368 Q886,312 1066,360 Q1246,315 1440,350 L1440,400Z" fill="#080302"/>
+    <ellipse cx="720" cy="372" rx="190" ry="38" fill="rgba(255,90,15,0.09)"/>
+    <ellipse cx="720" cy="388" rx="110" ry="18" fill="rgba(255,115,25,0.13)"/>
+    <rect x="655" y="358" width="15" height="20" fill="#0c0504"/>
+    <polygon points="655,358 662.5,344 670,358" fill="#0c0504"/>
+    <rect x="680" y="352" width="19" height="26" fill="#0c0504"/>
+    <polygon points="680,352 689.5,337 699,352" fill="#0c0504"/>
+    <rect x="716" y="360" width="13" height="17" fill="#0c0504"/>
+    <polygon points="716,360 722.5,349 729,360" fill="#0c0504"/>
+    <rect x="738" y="356" width="16" height="21" fill="#0c0504"/>
+    <polygon points="738,356 746,343 754,356" fill="#0c0504"/>
+  </svg>
+  <div id="fire-glow"></div>
+
+  <div id="login-card">
+    <div class="emblem">
+      <svg viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">
+        <path d="M38 7 L64 22 L64 44 Q64 63 38 69 Q12 63 12 44 L12 22 Z" fill="#18090200" stroke="rgba(200,140,30,0.65)" stroke-width="1.5"/>
+        <path d="M38 7 L64 22 L64 44 Q64 63 38 69 Q12 63 12 44 L12 22 Z" fill="rgba(20,10,2,0.6)"/>
+        <path d="M38 13 L58 25 L58 43 Q58 59 38 65 Q18 59 18 43 L18 25 Z" fill="none" stroke="rgba(200,140,30,0.25)" stroke-width="0.8"/>
+        <line x1="38" y1="17" x2="38" y2="61" stroke="rgba(200,140,30,0.65)" stroke-width="1.4"/>
+        <line x1="17" y1="38" x2="59" y2="38" stroke="rgba(200,140,30,0.65)" stroke-width="1.4"/>
+        <circle cx="38" cy="38" r="11" fill="none" stroke="rgba(200,140,30,0.55)" stroke-width="1.1"/>
+        <circle cx="38" cy="38" r="4.5" fill="rgba(245,180,40,0.85)"/>
+        <text x="38" y="31" text-anchor="middle" font-size="6" fill="rgba(200,140,30,0.48)" font-family="Georgia">ᚢ</text>
+        <text x="38" y="49.5" text-anchor="middle" font-size="6" fill="rgba(200,140,30,0.48)" font-family="Georgia">ᚱ</text>
+        <text x="30" y="41" text-anchor="middle" font-size="6" fill="rgba(200,140,30,0.48)" font-family="Georgia">ᚦ</text>
+        <text x="46" y="41" text-anchor="middle" font-size="6" fill="rgba(200,140,30,0.48)" font-family="Georgia">ᚨ</text>
+      </svg>
     </div>
+    <div class="login-title">Valhalla's Gate</div>
+    <div class="login-sub">Aldeia Viking · Mundo Exploratório</div>
+    <div class="divider"><span>ᚢ ᚱ ᚦ</span></div>
+    <div class="field-group">
+      <label class="field-label" for="viking-name">Nome do Guerreiro</label>
+      <input class="field-input" id="viking-name" type="text" placeholder="Ex: Bjorn, Freya, Ragnar..." maxlength="20" autocomplete="off"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="clan-name">Clã de Origem</label>
+      <input class="field-input" id="clan-name" type="text" placeholder="Ex: Corvos do Norte, Ursos..." maxlength="24" autocomplete="off"/>
+    </div>
+    <button class="enter-btn" onclick="handleLogin()">⚔ ADENTRAR VALHALLA ⚔</button>
+    <div id="login-error">⚠ Os deuses exigem teu nome, guerreiro!</div>
+    <div class="guest-link" onclick="handleGuest()">Continuar como Errante Sem Nome</div>
+    <div class="rune-footer">ᚢ ᛟ ᚦ ᚨ ᚾ</div>
+  </div>
 </div>
 
+<!-- ── LOADING ── -->
 <div id="loading-screen">
-    <h2 id="loading-welcome" style="margin-bottom: 10px;">Iniciando Jornada...</h2>
-    <p id="loading-msg" style="color: #8b5e3c;">Invocando os deuses...</p>
-    <div id="loading-bar-container"><div id="loading-bar"></div></div>
+  <div class="loading-rune">⚙</div>
+  <div class="loading-title">Invocando a Aldeia</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+  <div class="loading-msg" id="loading-msg">Forjando as longhouses...</div>
+  <div class="loading-welcome" id="loading-welcome"></div>
 </div>
 
+<!-- ── GAME ── -->
 <div id="canvas-container"></div>
-
 <div id="ui-overlay">
   <div id="nameplate">
-    <h1 style="font-size: 18px; color: #f5c030;">⚔ Aldeia Viking ⚔</h1>
-    <div id="viking-name-display" style="font-size: 14px; margin-top: 5px;"></div>
+    <h1>⚔ Aldeia Viking ⚔</h1>
+    <div id="viking-name-display"></div>
+    <p>Mundo Exploratório</p>
   </div>
-  
   <div id="compass">
-    <svg viewBox="0 0 72 72">
-      <circle cx="36" cy="36" r="34" fill="rgba(5,2,1,0.8)" stroke="#c88c1e" stroke-width="1.5"/>
-      <text x="36" y="13" text-anchor="middle" fill="#f5c030" font-size="10" font-weight="bold">N</text>
+    <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="36" cy="36" r="34" fill="rgba(5,2,1,0.88)" stroke="rgba(200,140,30,0.4)" stroke-width="1.5"/>
+      <circle cx="36" cy="36" r="28" fill="none" stroke="rgba(200,140,30,0.13)" stroke-width="0.5"/>
+      <text x="36" y="13" text-anchor="middle" fill="#f5c030" font-size="10" font-family="Cinzel,Georgia" font-weight="700">N</text>
+      <text x="36" y="63" text-anchor="middle" fill="rgba(200,160,80,0.5)" font-size="9" font-family="Cinzel,Georgia">S</text>
+      <text x="63" y="40" text-anchor="middle" fill="rgba(200,160,80,0.5)" font-size="9" font-family="Cinzel,Georgia">L</text>
+      <text x="9" y="40" text-anchor="middle" fill="rgba(200,160,80,0.5)" font-size="9" font-family="Cinzel,Georgia">O</text>
       <polygon points="36,18 33,36 36,32 39,36" fill="#f5c030" id="compass-needle"/>
+      <polygon points="36,54 33,36 36,40 39,36" fill="rgba(200,80,30,0.7)"/>
       <circle cx="36" cy="36" r="3" fill="#f5c030"/>
     </svg>
   </div>
-
   <button id="logout-btn" onclick="handleLogout()">← Sair</button>
-
+  <div id="controls-hint">
+    <div class="hint-key">WASD / ↑↓←→</div>
+    <div class="hint-key">Explorar a Aldeia</div>
+  </div>
   <div id="mobile-pad">
-    <div style="text-align:center;"><div class="pad-btn" data-dir="forward">▲</div></div>
-    <div>
+    <div class="pad-row"><div class="pad-btn" data-dir="forward">▲</div></div>
+    <div class="pad-row">
       <div class="pad-btn" data-dir="left">◀</div>
       <div class="pad-btn" data-dir="backward">▼</div>
       <div class="pad-btn" data-dir="right">▶</div>
@@ -112,70 +186,79 @@
 </div>
 
 <script>
-// ── Stars Background Logic ──
+// ── Stars ──
 const sc=document.getElementById('stars-canvas');
 const sx=sc.getContext('2d');
 function rsz(){sc.width=window.innerWidth;sc.height=window.innerHeight;}rsz();
 window.addEventListener('resize',rsz);
 const stars=Array.from({length:220},()=>({x:Math.random(),y:Math.random()*0.62,r:Math.random()*1.5+0.3,tw:Math.random()*Math.PI*2,sp:0.4+Math.random()*1.6}));
 function drawStars(t){
-    sx.clearRect(0,0,sc.width,sc.height);
-    stars.forEach(s=>{
-        const a=Math.max(0,0.38+Math.sin(t*0.001*s.sp+s.tw)*0.36);
-        sx.beginPath();sx.arc(s.x*sc.width,s.y*sc.height,s.r,0,Math.PI*2);
-        sx.fillStyle=`rgba(255,245,205,${a})`;sx.fill();
-    });
-    requestAnimationFrame(drawStars);
+  sx.clearRect(0,0,sc.width,sc.height);
+  stars.forEach(s=>{
+    const a=Math.max(0,0.38+Math.sin(t*s.sp+s.tw)*0.36);
+    sx.beginPath();sx.arc(s.x*sc.width,s.y*sc.height,s.r,0,Math.PI*2);
+    sx.fillStyle=`rgba(255,245,205,${a})`;sx.fill();
+  });
+  requestAnimationFrame(drawStars);
 }drawStars(0);
 
-// ── Login & Transitions ──
-let playerName='', playerClan='';
-const loadMsgs=['Forjando as longhouses...','Acendendo as fogueiras...','Despertando o drakkar...','Esculpindo runas antigas...','Valhalla te aguarda!'];
+// ── Login Logic ──
+let playerName='',playerClan='';
+const loadMsgs=['Forjando as longhouses...','Acendendo as fogueiras...','Despertando o drakkar...','Esculpindo runas antigas...','Invocando os espíritos...','Preparando o banquete...','Valhalla te aguarda!'];
 
 function handleLogin(){
-    const n=document.getElementById('viking-name').value.trim();
-    if(!n){document.getElementById('login-error').style.display='block';return;}
-    playerName=n;
-    playerClan=document.getElementById('clan-name').value.trim()||'Sem Clã';
-    startLoading();
+  const n=document.getElementById('viking-name').value.trim();
+  const err=document.getElementById('login-error');
+  if(!n){err.style.display='block';return;}
+  err.style.display='none';
+  playerName=n;
+  playerClan=document.getElementById('clan-name').value.trim()||'Sem Clã';
+  startLoading();
 }
 function handleGuest(){playerName='Errante';playerClan='Sem Clã';startLoading();}
+document.getElementById('viking-name').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+document.getElementById('clan-name').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 
 function startLoading(){
-    document.getElementById('fade-overlay').classList.add('visible');
-    setTimeout(()=>{
-        document.getElementById('login-screen').style.display='none';
-        document.getElementById('loading-screen').style.display='flex';
-        document.getElementById('loading-welcome').textContent=`Bem-vindo, ${playerName}`;
-        document.getElementById('fade-overlay').classList.remove('visible');
-        
-        let prog=0, mi=0;
-        const iv=setInterval(()=>{
-            prog += Math.random()*8+2;
-            if(prog>=100){
-                prog=100; clearInterval(iv);
-                setTimeout(enterGame, 500);
-            }
-            document.getElementById('loading-bar').style.width=prog+'%';
-            if(mi < loadMsgs.length && prog > (mi+1)*20) document.getElementById('loading-msg').textContent=loadMsgs[mi++];
-        }, 100);
-    }, 600);
+  const fade=document.getElementById('fade-overlay');
+  fade.classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('login-screen').style.display='none';
+    const ls=document.getElementById('loading-screen');ls.style.display='flex';
+    document.getElementById('loading-welcome').textContent=`Bem-vindo, ${playerName} do Clã ${playerClan}`;
+    fade.classList.remove('visible');
+    let prog=0,mi=0;
+    const bar=document.getElementById('loading-bar');
+    const msg=document.getElementById('loading-msg');
+    const iv=setInterval(()=>{
+      prog+=Math.random()*11+4;if(prog>100)prog=100;
+      bar.style.width=prog+'%';
+      if(mi<loadMsgs.length-1&&prog>mi*(100/loadMsgs.length))msg.textContent=loadMsgs[mi++];
+      if(prog>=100){clearInterval(iv);msg.textContent=loadMsgs[loadMsgs.length-1];setTimeout(enterGame,600);}
+    },150);
+  },580);
 }
 
 function enterGame(){
-    document.getElementById('fade-overlay').classList.add('visible');
-    setTimeout(()=>{
-        document.getElementById('loading-screen').style.display='none';
-        document.getElementById('canvas-container').style.display='block';
-        document.getElementById('ui-overlay').style.display='block';
-        document.getElementById('viking-name-display').textContent=`${playerName} · Clã ${playerClan}`;
-        initGame();
-        document.getElementById('fade-overlay').classList.remove('visible');
-    }, 600);
+  const fade=document.getElementById('fade-overlay');fade.classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('canvas-container').style.display='block';
+    document.getElementById('ui-overlay').style.display='block';
+    document.getElementById('viking-name-display').textContent=`${playerName}  ·  Clã ${playerClan}`;
+    initGame();fade.classList.remove('visible');
+  },580);
 }
 
 function handleLogout(){
-    location.reload(); // Forma mais limpa de resetar o estado do Three.js
+  const fade=document.getElementById('fade-overlay');fade.classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('canvas-container').style.display='none';
+    document.getElementById('ui-overlay').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('loading-bar').style.width='0';
+    fade.classList.remove('visible');
+  },580);
 }
 </script>
 
@@ -183,7 +266,6 @@ function handleLogout(){
 <script type="module">
 import * as THREE from 'three';
 let inited=false;
-
 window.initGame=function(){
   if(inited)return;inited=true;
 
@@ -191,10 +273,8 @@ window.initGame=function(){
   const renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.setSize(window.innerWidth,window.innerHeight);
-  renderer.shadowMap.enabled=true;
-  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.outputEncoding=THREE.sRGBEncoding;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   container.appendChild(renderer.domElement);
 
   const scene=new THREE.Scene();
@@ -209,9 +289,12 @@ window.initGame=function(){
   const sun=new THREE.DirectionalLight(0xfff4c0,1.3);
   sun.position.set(22,38,16);sun.castShadow=true;
   sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=sun.shadow.camera.bottom=-48;
+  sun.shadow.camera.right=sun.shadow.camera.top=48;
+  sun.shadow.camera.far=120;sun.shadow.bias=-0.001;
   scene.add(sun);
+  scene.add(Object.assign(new THREE.DirectionalLight(0x80a0ff,0.24),{position:new THREE.Vector3(-10,8,-18)}));
 
-  // Materiais
   const M={
     grass:new THREE.MeshLambertMaterial({color:0x5d9e3a}),
     grassDk:new THREE.MeshLambertMaterial({color:0x4a8030}),
@@ -225,6 +308,7 @@ window.initGame=function(){
     sand:new THREE.MeshLambertMaterial({color:0xc8a870}),
     fire:new THREE.MeshLambertMaterial({color:0xff8820,emissive:0xff5500,emissiveIntensity:0.9}),
     fireIn:new THREE.MeshLambertMaterial({color:0xffdd44,emissive:0xffaa00,emissiveIntensity:1.0}),
+    gold:new THREE.MeshLambertMaterial({color:0xf5c842,emissive:0xb08000,emissiveIntensity:0.3}),
     trunk:new THREE.MeshLambertMaterial({color:0x7a4a1a}),
     leaves:new THREE.MeshLambertMaterial({color:0x3a7a1a}),
     leavesDk:new THREE.MeshLambertMaterial({color:0x2d6015}),
@@ -233,6 +317,7 @@ window.initGame=function(){
     cloth:new THREE.MeshLambertMaterial({color:0x7a3a1a}),
     hair:new THREE.MeshLambertMaterial({color:0xc06020}),
     metal:new THREE.MeshLambertMaterial({color:0x909090}),
+    metalSh:new THREE.MeshLambertMaterial({color:0xa8a8a8}),
     boat:new THREE.MeshLambertMaterial({color:0x7a3a10}),
     rune:new THREE.MeshLambertMaterial({color:0x606070}),
     runeGlow:new THREE.MeshLambertMaterial({color:0x80ffaa,emissive:0x40cc66,emissiveIntensity:0.7}),
@@ -240,111 +325,253 @@ window.initGame=function(){
     iron:new THREE.MeshLambertMaterial({color:0x707070}),
     ember:new THREE.MeshLambertMaterial({color:0xff4400,emissive:0xff2200,emissiveIntensity:1.0}),
     wattle:new THREE.MeshLambertMaterial({color:0xc8a870}),
+    rope:new THREE.MeshLambertMaterial({color:0xc4a060}),
+    fur:new THREE.MeshLambertMaterial({color:0xb89060}),
     sail:new THREE.MeshLambertMaterial({color:0xeedd88}),
     sailRed:new THREE.MeshLambertMaterial({color:0xaa2200}),
-    shield:new THREE.MeshLambertMaterial({color:0x8b2020})
+    shield:new THREE.MeshLambertMaterial({color:0x8b2020}),
   };
 
-  function gm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){
-      const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);
-      m.castShadow=true;m.receiveShadow=true;return m;
+  function gm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;return m;}
+  function B(w,h,d,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=gm(new THREE.BoxGeometry(w,h,d),mat,x,y,z,rx,ry,rz);scene.add(m);return m;}
+  function C(rT,rB,h,seg,mat,x=0,y=0,z=0){const m=gm(new THREE.CylinderGeometry(rT,rB,h,seg),mat,x,y,z);scene.add(m);return m;}
+  function S(r,w,h,mat,x=0,y=0,z=0){const m=gm(new THREE.SphereGeometry(r,w,h),mat,x,y,z);scene.add(m);return m;}
+
+  // Terrain
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(90,90,24,24),M.grass);gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;scene.add(gnd);
+  for(let i=0;i<50;i++){const p=new THREE.Mesh(new THREE.CircleGeometry(1.2+Math.random()*2,6),M.grassDk);p.rotation.x=-Math.PI/2;p.position.set((Math.random()-.5)*66,0.01,(Math.random()-.5)*66);scene.add(p);}
+
+  function path(x1,z1,x2,z2,w=2.2){const dx=x2-x1,dz=z2-z1,len=Math.sqrt(dx*dx+dz*dz),ang=Math.atan2(dx,dz);const p=new THREE.Mesh(new THREE.PlaneGeometry(w,len),M.dirt);p.rotation.x=-Math.PI/2;p.rotation.z=-ang;p.position.set((x1+x2)/2,0.014,(z1+z2)/2);p.receiveShadow=true;scene.add(p);}
+  path(0,0,0,-17);path(0,0,0,17);path(0,0,-17,0);path(0,0,17,0);
+  path(0,-17,-14,-17);path(0,17,14,17);path(-17,0,-17,13);path(17,0,17,-13);
+  path(-17,13,-23,13);
+  const plaza=new THREE.Mesh(new THREE.CircleGeometry(4.2,12),M.dirt);plaza.rotation.x=-Math.PI/2;plaza.position.set(0,0.015,0);plaza.receiveShadow=true;scene.add(plaza);
+
+  const river=new THREE.Mesh(new THREE.PlaneGeometry(7,36),M.water);river.rotation.x=-Math.PI/2;river.position.set(-23,0.06,0);scene.add(river);
+  [-4.2,4.2].forEach(dx=>{const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.6,36),M.sand);bk.rotation.x=-Math.PI/2;bk.position.set(-23+dx,0.025,0);scene.add(bk);});
+
+  // Longhouses
+  function longhouse(gx,gz,ry=0){
+    const g=new THREE.Group();
+    g.add(gm(new THREE.BoxGeometry(11,2.8,5.5),M.wood,0,1.4,0));
+    for(let i=-1;i<=1;i++){[2.76,-2.76].forEach(pz=>{g.add(gm(new THREE.BoxGeometry(2.8,1.6,0.08),M.wattle,i*3,1.3,pz));for(let j=-1;j<=1;j++)g.add(gm(new THREE.BoxGeometry(0.12,2.8,0.06),M.woodDk,i*3+j*0.9,1.4,pz));});}
+    const rv=new Float32Array([-5.7,2.8,-3,5.7,2.8,-3,0,5.2,0,5.7,2.8,-3,5.7,2.8,3,0,5.2,0,5.7,2.8,3,-5.7,2.8,3,0,5.2,0,-5.7,2.8,3,-5.7,2.8,-3,0,5.2,0,-5.7,2.8,-3,-5.7,2.8,3,-5.7,5.2,0,5.7,2.8,3,5.7,2.8,-3,5.7,5.2,0]);
+    const rg=new THREE.BufferGeometry();rg.setAttribute('position',new THREE.BufferAttribute(rv,3));rg.computeVertexNormals();
+    const rf=new THREE.Mesh(rg,M.roof);rf.castShadow=true;g.add(rf);
+    g.add(gm(new THREE.CylinderGeometry(0.08,0.08,11.6,6),M.woodDk,0,5.2,0,0,0,Math.PI/2));
+    [-5.8,5.8].forEach(px=>{const d=px>0?1:-1;g.add(gm(new THREE.BoxGeometry(0.52,0.56,0.4),M.woodDk,px,5.38,0));g.add(gm(new THREE.BoxGeometry(0.3,0.22,0.3),M.woodDk,px+d*0.28,5.22,0));g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,0.2),{rotation:new THREE.Euler(0.4,0,0.4*d)}));g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,-0.2),{rotation:new THREE.Euler(-0.4,0,0.4*d)}));});
+    g.add(gm(new THREE.BoxGeometry(1.2,2.2,0.08),M.woodDk,0,1.1,2.76));
+    g.add(gm(new THREE.BoxGeometry(11.4,0.3,5.8),M.stoneDk,0,0.15,0));
+    g.position.set(gx,0,gz);g.rotation.y=ry;
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
   }
+  longhouse(7,-9,0);longhouse(-7,9,Math.PI/2);longhouse(9,7,Math.PI*.15);longhouse(-10,-8,Math.PI*.85);
 
-  // Chão
-  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(90,90),M.grass);
-  gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;scene.add(gnd);
+  // Totems
+  function totem(gx,gz){
+    const g=new THREE.Group();
+    g.add(gm(new THREE.CylinderGeometry(0.18,0.24,4.6,8),M.wood,0,2.3,0));
+    [1,2.2,3.3].forEach(y=>{g.add(gm(new THREE.BoxGeometry(0.65,0.5,0.5),M.woodDk,0,y,0.12));[-0.2,0.2].forEach(dx=>g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.42,5),M.woodDk,dx,y+0.32,0.1),{rotation:new THREE.Euler(0,0,dx>0?-0.5:0.5)})));});
+    g.add(gm(new THREE.CylinderGeometry(0.07,0.07,0.65,6),M.wood,0.34,4.0,0));
+    const fl=gm(new THREE.ConeGeometry(0.14,0.42,6),M.fire,0.34,4.32,0);g.add(fl);
+    const fl2=gm(new THREE.ConeGeometry(0.06,0.22,5),M.fireIn,0.34,4.46,0);g.add(fl2);
+    const pt=new THREE.PointLight(0xff8820,1.4,6);pt.position.set(0.34,4.32,0);g.add(pt);
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});scene.add(g);
+    return{fl,fl2,pt};
+  }
+  const totems=[totem(3.5,3.5),totem(-3.5,-3.5),totem(14,-4),totem(-12,6)];
 
-  // Praça e Caminhos
-  const plaza=gm(new THREE.CircleGeometry(4.2,12),M.dirt,0,0.015,0,-Math.PI/2);scene.add(plaza);
+  // Rune stone
+  function runeStone(gx,gz){
+    const g=new THREE.Group();
+    g.add(gm(new THREE.BoxGeometry(1.3,2.5,0.55),M.rune,0,1.25,0,0,0.04,0));
+    [[0.7,0.55],[0.06,0.55],[0.56,0.9],[0.5,1.25],[0.6,1.62]].forEach(([w,y])=>g.add(gm(new THREE.BoxGeometry(w,0.06,0.07),M.runeGlow,0,y,0.3)));
+    [0.5,-0.5].forEach(rz=>{const d=gm(new THREE.BoxGeometry(0.52,0.06,0.07),M.runeGlow,0,1.98,0.3);d.rotation.z=rz;g.add(d);});
+    g.add(gm(new THREE.BoxGeometry(1.8,0.28,0.9),M.stoneDk,0,0.14,0));
+    const gl=new THREE.PointLight(0x40ff80,0.85,4.5);gl.position.set(0,1.5,0.4);g.add(gl);
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
+    return gl;
+  }
+  const runeLight=runeStone(0,0);
 
-  // Rio
-  const river=gm(new THREE.PlaneGeometry(7,36),M.water,-23,0.06,0,-Math.PI/2);scene.add(river);
+  // Forge
+  function forge(gx,gz,ry=0){
+    const g=new THREE.Group();
+    [[-2,1.25,-2,4,2.5,0.2],[2,1.25,-2,0.2,2.5,4],[2,1.25,2,4,2.5,0.2]].forEach(([x,y,z,w,h,d])=>g.add(gm(new THREE.BoxGeometry(w,h,d),M.wood,x,y,z)));
+    g.add(gm(new THREE.BoxGeometry(4.5,0.22,4.3),M.roof,0,2.6,0));
+    g.add(gm(new THREE.BoxGeometry(1.6,0.55,1.6),M.stone,-0.5,0.27,0));
+    const emb=gm(new THREE.PlaneGeometry(1.1,1.1),M.ember,-0.5,0.56,0);emb.rotation.x=-Math.PI/2;g.add(emb);
+    const fg=new THREE.PointLight(0xff6600,2.2,6);fg.position.set(-0.5,1.1,0);g.add(fg);
+    g.add(gm(new THREE.BoxGeometry(0.52,0.55,0.32),M.iron,0.9,0.77,0));
+    g.add(gm(new THREE.BoxGeometry(0.75,0.16,0.42),M.iron,0.9,1.1,0));
+    g.add(gm(new THREE.BoxGeometry(0.1,1.6,1.1),M.wood,1.9,1.3,-0.4));
+    [-0.35,0,0.35].forEach(dz=>g.add(gm(new THREE.BoxGeometry(0.28,0.55,0.06),M.metal,1.95,1.85,dz-0.4)));
+    g.add(gm(new THREE.CylinderGeometry(0.18,0.22,1.6,8),M.stone,-0.5,3.5,0));
+    g.position.set(gx,0,gz);g.rotation.y=ry;
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
+    return fg;
+  }
+  const forgeGlow=forge(-10,-7,Math.PI*.1);
+
+  // Drakkar
+  function drakkar(gx,gz,ry=0){
+    const g=new THREE.Group();
+    g.add(gm(new THREE.BoxGeometry(5,0.85,12),M.boat,0,0.42,0));
+    const bw=gm(new THREE.CylinderGeometry(0.18,2.5,1,8),M.boat,0,0.42,6);bw.rotation.x=Math.PI/2;g.add(bw);
+    const st=gm(new THREE.CylinderGeometry(0.18,2.5,0.9,8),M.boat,0,0.42,-6);st.rotation.x=-Math.PI/2;g.add(st);
+    [-2.7,2.7].forEach(dx=>g.add(gm(new THREE.BoxGeometry(0.16,0.22,12),M.woodDk,dx,0.95,0)));
+    [-4,-2,0,2,4].forEach(dz=>{g.add(Object.assign(gm(new THREE.CylinderGeometry(0.5,0.5,0.1,8),M.shield,2.8,1.06,dz),{rotation:new THREE.Euler(Math.PI/2,0,0)}));g.add(gm(new THREE.SphereGeometry(0.14,6,4),M.metal,2.8,1.06,dz));});
+    g.add(gm(new THREE.CylinderGeometry(0.1,0.13,5.5,6),M.woodDk,0,3.55,0));
+    g.add(Object.assign(gm(new THREE.PlaneGeometry(3.8,3.6),M.sail,0,3.6,0),{rotation:new THREE.Euler(0,Math.PI/2,0)}));
+    [-0.9,0,0.9].forEach(dy=>g.add(Object.assign(gm(new THREE.PlaneGeometry(3.8,0.3),M.sailRed,0,3.6+dy,-0.01),{rotation:new THREE.Euler(0,Math.PI/2,0)})));
+    g.add(gm(new THREE.BoxGeometry(0.65,0.65,0.85),M.woodDk,0,1.7,7));
+    g.add(gm(new THREE.BoxGeometry(0.32,0.26,0.5),M.woodDk,0,1.48,7.5));
+    [-0.28,0.28].forEach(dx=>{const h=gm(new THREE.CylinderGeometry(0.04,0.1,0.52,5),M.woodDk,dx,2.1,7);h.rotation.z=dx>0?-0.45:0.45;g.add(h);});
+    [-2,2].forEach(dz=>{const o=gm(new THREE.CylinderGeometry(0.05,0.05,4.2,5),M.wood,2.9,0.4,dz);o.rotation.z=Math.PI*.35;g.add(o);});
+    g.position.set(gx,0.12,gz);g.rotation.y=ry;
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
+  }
+  drakkar(-21,4,Math.PI/2);
+
+  // Trees
+  function pine(gx,gz,sc=1){
+    const g=new THREE.Group();
+    g.add(gm(new THREE.CylinderGeometry(0.14*sc,0.2*sc,2.2*sc,6),M.trunk,0,sc*1.1,0));
+    [[1.5,1.9],[1.1,2.7],[0.7,3.3],[0.4,3.8]].forEach(([r,y],i)=>{g.add(gm(new THREE.ConeGeometry(r*sc,r*1.3*sc,7),M.leaves,0,y*sc,0));if(i<2)g.add(gm(new THREE.ConeGeometry(r*.65*sc,r*.8*sc,6),M.leavesDk,0,(y+r*.4)*sc,0));});
+    g.add(gm(new THREE.ConeGeometry(0.45*sc,0.4*sc,7),M.snow,0,4.2*sc,0));
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});scene.add(g);
+  }
+  [[18,18],[23,5],[20,-11],[18,-22],[6,24],[-5,21],[-16,19],[-23,8],[-21,-6],[-19,-19],[-5,-23],[9,-21],[26,14],[-26,-12],[14,-26],[26,-3],[-4,28],[28,8],[-28,2],[2,-28],[24,-18],[-24,16]].forEach(([x,z])=>pine(x,z,.75+Math.random()*.9));
+  [[-2,6],[5,-2],[9,-5],[-5,-8],[3,10],[-9,4],[6,13],[-4,-11],[11,11],[-12,7],[8,-16]].forEach(([x,z])=>{
+    S(0.75,6,4,M.leaves,x,0.7,z);S(0.52,5,4,M.leavesDk,x+.45,.8,z+.2);S(0.48,5,4,M.leavesDk,x-.3,.6,z+.28);
+  });
+
+  // Well
+  const wg=new THREE.Group();
+  wg.add(gm(new THREE.CylinderGeometry(1.05,1.15,0.85,10),M.stone,0,0.42,0));
+  const wtr=gm(new THREE.PlaneGeometry(1.6,1.6),M.water,0,0.56,0);wtr.rotation.x=-Math.PI/2;wg.add(wtr);
+  [-1.1,1.1].forEach(dx=>wg.add(gm(new THREE.CylinderGeometry(0.08,0.08,1.3,6),M.wood,dx,1.28,0)));
+  wg.add(gm(new THREE.CylinderGeometry(0.07,0.07,2.4,6),M.wood,0,1.9,0,0,0,Math.PI/2));
+  wg.add(gm(new THREE.CylinderGeometry(0.14,0.11,0.32,8),M.woodDk,.3,1.7,0));
+  wg.position.set(5,0,5);wg.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(wg);
+
+  // Campfires
+  function campfire(gx,gz){
+    const g=new THREE.Group();
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const s=gm(new THREE.BoxGeometry(0.3,0.2,0.2),M.stone,Math.cos(a)*.52,.1,Math.sin(a)*.52);s.rotation.y=a;g.add(s);}
+    g.add(Object.assign(gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0,0.05,0.2),{rotation:new THREE.Euler(Math.PI/2,0,0)}));
+    g.add(Object.assign(gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0.2,0.05,0),{rotation:new THREE.Euler(0,0,Math.PI/2)}));
+    const fl=gm(new THREE.ConeGeometry(0.22,0.56,7),M.fire,0,.46,0);g.add(fl);
+    const fl2=gm(new THREE.ConeGeometry(0.1,0.32,6),M.fireIn,0,.62,0);g.add(fl2);
+    const pt=new THREE.PointLight(0xff8820,2.0,8);pt.position.set(0,.56,0);g.add(pt);
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});scene.add(g);
+    return{fl,fl2,pt};
+  }
+  const fires=[campfire(-2,2),campfire(6,-13),campfire(-14,14)];
+
+  // Barrels & crates
+  [[3,-6.5],[3.9,-6.5],[4.8,-6.5],[11,-3.5],[11.8,-3.5]].forEach(([x,z])=>{C(.36,.36,.72,10,M.barrel,x,.36,z);C(.38,.38,.06,10,M.woodDk,x,.15,z);C(.38,.38,.06,10,M.woodDk,x,.57,z);});
+  [[-7.5,11],[-6.7,11],[-7.5,11.8]].forEach(([x,z])=>{B(.85,.85,.85,M.wood,x,.42,z);B(.87,.1,.87,M.woodDk,x,.04,z);B(.87,.1,.87,M.woodDk,x,.8,z);B(.1,.85,.87,M.woodDk,x+.38,.42,z);});
 
   // Viking character
   const viking=new THREE.Group();
-  viking.add(gm(new THREE.BoxGeometry(.58,.65,.36),M.cloth,0,.85,0)); // Corpo
-  viking.add(gm(new THREE.BoxGeometry(.44,.44,.42),M.skin,0,1.5,0));  // Cabeça
-  viking.add(gm(new THREE.BoxGeometry(.5,.22,.48),M.metal,0,1.74,0)); // Capacete
-  const legL=gm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,-.14,.27,0);
-  const legR=gm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,.14,.27,0);
-  const armL=gm(new THREE.BoxGeometry(.2,.52,.2),M.cloth,-.4,.8,0);
-  const armR=gm(new THREE.BoxGeometry(.2,.52,.2),M.cloth,.4,.8,0);
-  viking.add(legL,legR,armL,armR);
-  viking.position.set(0,0,0);
-  scene.add(viking);
+  function vm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;return m;}
+  const legL=vm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,-.14,.27,0);
+  const legR=vm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,.14,.27,0);
+  viking.add(legL,legR);
+  viking.add(vm(new THREE.BoxGeometry(.25,.18,.32),M.woodDk,-.14,.04,.04));
+  viking.add(vm(new THREE.BoxGeometry(.25,.18,.32),M.woodDk,.14,.04,.04));
+  const torso=vm(new THREE.BoxGeometry(.58,.65,.36),M.cloth,0,.85,0);viking.add(torso);
+  viking.add(vm(new THREE.BoxGeometry(.64,.52,.1),M.fur,0,.88,-.18));
+  viking.add(vm(new THREE.BoxGeometry(.6,.1,.38),M.woodDk,0,.57,0));
+  const armL=vm(new THREE.BoxGeometry(.2,.52,.2),M.cloth,-.4,.8,0);
+  const armR=vm(new THREE.BoxGeometry(.2,.52,.2),M.cloth,.4,.8,0);
+  viking.add(armL,armR);
+  viking.add(vm(new THREE.BoxGeometry(.18,.18,.18),M.skin,-.4,.54,0));
+  viking.add(vm(new THREE.BoxGeometry(.18,.18,.18),M.skin,.4,.54,0));
+  viking.add(vm(new THREE.CylinderGeometry(.1,.12,.16,6),M.skin,0,1.18,0));
+  const head=vm(new THREE.BoxGeometry(.44,.44,.42),M.skin,0,1.5,0);viking.add(head);
+  viking.add(vm(new THREE.BoxGeometry(.07,.06,.05),new THREE.MeshLambertMaterial({color:0x224488}),-.1,1.53,.22));
+  viking.add(vm(new THREE.BoxGeometry(.07,.06,.05),new THREE.MeshLambertMaterial({color:0x224488}),.1,1.53,.22));
+  viking.add(vm(new THREE.BoxGeometry(.38,.32,.12),M.hair,0,1.26,.18));
+  viking.add(vm(new THREE.BoxGeometry(.16,.22,.1),M.hair,0,1.07,.17));
+  viking.add(vm(new THREE.BoxGeometry(.42,.22,.14),M.hair,0,1.6,-.2));
+  viking.add(vm(new THREE.BoxGeometry(.5,.22,.48),M.metal,0,1.74,0));
+  const htop=vm(new THREE.SphereGeometry(.27,8,6),M.metal,0,1.78,0);htop.scale.y=.72;viking.add(htop);
+  [-.28,.28].forEach(dx=>{const h=vm(new THREE.CylinderGeometry(.04,.1,.52,6),M.metalSh,dx,1.85,0);h.rotation.z=dx>0?-.5:.5;h.rotation.x=.2;viking.add(h);});
+  viking.add(vm(new THREE.CylinderGeometry(.04,.04,.85,5),M.wood,-.19,.9,-.22,0,0,.2));
+  viking.add(vm(new THREE.BoxGeometry(.28,.38,.08),M.metal,-.23,1.26,-.22));
+  viking.add(vm(new THREE.BoxGeometry(.08,.38,.05),new THREE.MeshLambertMaterial({color:0xcccccc}),-.32,1.26,-.22));
+  viking.traverse(c=>{if(c.isMesh)c.castShadow=true;});
+  viking.position.set(2,0,2);scene.add(viking);
 
-  // Campfires animadas
-  function campfire(gx,gz){
+  // Clouds
+  const cloudMat=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.88});
+  function cloud(x,y,z,sc=1){
     const g=new THREE.Group();
-    const fl=gm(new THREE.ConeGeometry(0.22,0.56,7),M.fire,0,.46,0);
-    const fl2=gm(new THREE.ConeGeometry(0.1,0.32,6),M.fireIn,0,.62,0);
-    const pt=new THREE.PointLight(0xff8820,2.0,8);pt.position.set(0,.56,0);
-    g.add(fl,fl2,pt);g.position.set(gx,0,gz);scene.add(g);
-    return{fl,fl2,pt};
+    [[0,0,0,1.6],[1.3,.2,0,1.1],[-1.3,0,0,1.0],[.6,.35,-.9,.85],[-.5,.25,.9,.78]].forEach(([cx,cy,cz,r])=>{const c=new THREE.Mesh(new THREE.SphereGeometry(r*sc,7,5),cloudMat);c.position.set(cx*sc,cy*sc,cz*sc);g.add(c);});
+    g.position.set(x,y,z);scene.add(g);return g;
   }
-  const fires=[campfire(2,2), campfire(-5, -5)];
+  const clouds=[cloud(10,19,-5),cloud(-13,21,8),cloud(5,23,15),cloud(-8,20,-13),cloud(20,22,0),cloud(-2,18,22),cloud(24,-3,12)];
 
-  // Controles
+  // Controls
   const keys={};
-  window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
-  window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+  window.addEventListener('keydown',e=>keys[e.key]=true);
+  window.addEventListener('keyup',e=>keys[e.key]=false);
   document.querySelectorAll('.pad-btn').forEach(btn=>{
-    const d=btn.dataset.dir;
-    btn.onmousedown=()=>keys[d]=true;btn.onmouseup=()=>keys[d]=false;
-    btn.ontouchstart=e=>{e.preventDefault();keys[d]=true;};btn.ontouchend=()=>keys[d]=false;
+    const dir=btn.dataset.dir;
+    btn.addEventListener('touchstart',e=>{e.preventDefault();keys['_'+dir]=true;},{passive:false});
+    btn.addEventListener('touchend',e=>{e.preventDefault();keys['_'+dir]=false;},{passive:false});
+    btn.addEventListener('mousedown',()=>keys['_'+dir]=true);
+    btn.addEventListener('mouseup',()=>keys['_'+dir]=false);
   });
 
-  const SPEED=6; let vikingAngle=0, walkPhase=0;
-  const camOffset=new THREE.Vector3(28,28,28);
+  const SPEED=5;let vikingAngle=0,walkPhase=0;
+  const CAM=new THREE.Vector3(28,28,28);const camT=new THREE.Vector3(28,28,28);
   let lastTs=0;
 
   function animate(ts){
     requestAnimationFrame(animate);
-    const dt=Math.min((ts-lastTs)/1000, 0.05); lastTs=ts;
-    
-    let dx=0, dz=0;
-    if(keys['w']||keys['arrowup']||keys['forward']) dz-=1;
-    if(keys['s']||keys['arrowdown']||keys['backward']) dz+=1;
-    if(keys['a']||keys['arrowleft']||keys['left']) dx-=1;
-    if(keys['d']||keys['arrowright']||keys['right']) dx+=1;
-
-    if(dx!==0||dz!==0){
-      const targetAngle=Math.atan2(dx,dz);
-      vikingAngle=targetAngle;
-      viking.rotation.y=vikingAngle;
-      viking.position.x+=dx*SPEED*dt;
-      viking.position.z+=dz*SPEED*dt;
-      
-      walkPhase+=dt*12;
-      legL.rotation.x=Math.sin(walkPhase)*0.5;
-      legR.rotation.x=Math.sin(walkPhase + Math.PI)*0.5;
-    } else {
-        legL.rotation.x=0; legR.rotation.x=0;
+    const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;const t=ts/1000;
+    let dx=0,dz=0;
+    if(keys['ArrowUp']||keys['w']||keys['W']||keys['_forward'])dz-=1;
+    if(keys['ArrowDown']||keys['s']||keys['S']||keys['_backward'])dz+=1;
+    if(keys['ArrowLeft']||keys['a']||keys['A']||keys['_left'])dx-=1;
+    if(keys['ArrowRight']||keys['d']||keys['D']||keys['_right'])dx+=1;
+    const moving=dx!==0||dz!==0;
+    if(moving){
+      const ta=Math.atan2(dx,dz);let diff=ta-vikingAngle;
+      while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
+      vikingAngle+=diff*Math.min(dt*14,1);viking.rotation.y=vikingAngle;
+      const l=Math.sqrt(dx*dx+dz*dz);
+      viking.position.x=Math.max(-27,Math.min(27,viking.position.x+dx/l*SPEED*dt));
+      viking.position.z=Math.max(-27,Math.min(27,viking.position.z+dz/l*SPEED*dt));
+      walkPhase+=dt*10;
+      legL.rotation.x=Math.sin(walkPhase)*.52;legR.rotation.x=-Math.sin(walkPhase)*.52;
+      armL.rotation.x=-Math.sin(walkPhase)*.42;armR.rotation.x=Math.sin(walkPhase)*.42;
+      viking.position.y=Math.abs(Math.sin(walkPhase))*.044;
+    }else{
+      torso.position.y=.85+Math.sin(t*1.4)*.012;
+      legL.rotation.x=0;legR.rotation.x=0;armL.rotation.x=0;armR.rotation.x=0;
     }
-
-    // Camera segue suave
-    camera.position.lerp(new THREE.Vector3(viking.position.x+28, 28, viking.position.z+28), 0.1);
-    camera.lookAt(viking.position.x, 1, viking.position.z);
-
-    // Animacao de fogo
-    fires.forEach(f=>{
-        const s=1+Math.sin(ts*0.01)*0.1;
-        f.fl.scale.set(s,s,s);
-        f.pt.intensity=2+Math.random()*0.5;
-    });
-
-    // Bussola
+    const vp=viking.position;
+    camT.lerp(new THREE.Vector3(vp.x+CAM.x,CAM.y,vp.z+CAM.z),dt*4);
+    camera.position.copy(camT);camera.lookAt(vp.x,1,vp.z);
     const needle=document.getElementById('compass-needle');
-    if(needle) needle.setAttribute('transform',`rotate(${THREE.MathUtils.radToDeg(-vikingAngle)},36,36)`);
-
+    if(needle)needle.setAttribute('transform',`rotate(${THREE.MathUtils.radToDeg(-vikingAngle)},36,36)`);
+    fires.forEach(({fl,fl2,pt},i)=>{const f=Math.sin(t*8+i*2.3)*.18+Math.sin(t*13+i)*.09;fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.9+f*1.8;});
+    totems.forEach(({fl,fl2,pt},i)=>{const f=Math.sin(t*9+i*3.1)*.15;fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.3+f*1.2;});
+    forgeGlow.intensity=2.0+Math.sin(t*7)*.6;
+    runeLight.intensity=0.7+Math.sin(t*2.2)*.35;
+    river.position.y=.06+Math.sin(t*.7)*.018;
+    clouds.forEach((c,i)=>c.position.x+=Math.sin(t*.08+i)*.007);
     renderer.render(scene,camera);
   }
   requestAnimationFrame(animate);
 
   window.addEventListener('resize',()=>{
-    const a=window.innerWidth/window.innerHeight;
-    camera.left=-cs*a;camera.right=cs*a;camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth,window.innerHeight);
+    const a=window.innerWidth/window.innerHeight;camera.left=-cs*a;camera.right=cs*a;
+    camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);
   });
 };
 </script>
