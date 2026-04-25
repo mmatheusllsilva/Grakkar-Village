@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@400;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{overflow:hidden;background:#0a0604;font-family:'Cinzel',serif;}
-#canvas-container{width:100vw;height:100vh;display:none;}
+#canvas-container{width:100vw;height:100vh;display:none;position:fixed;top:0;left:0;}
 canvas{display:block;}
 
 /* ── LOGIN ── */
@@ -129,10 +129,6 @@ canvas{display:block;}
       <label class="field-label" for="viking-name">Nome do Guerreiro</label>
       <input class="field-input" id="viking-name" type="text" placeholder="Ex: Bjorn, Freya, Ragnar..." maxlength="20" autocomplete="off"/>
     </div>
-    <div class="field-group">
-      <label class="field-label" for="clan-name">Clã de Origem</label>
-      <input class="field-input" id="clan-name" type="text" placeholder="Ex: Corvos do Norte, Ursos..." maxlength="24" autocomplete="off"/>
-    </div>
     <button class="enter-btn" onclick="handleLogin()">⚔ ADENTRAR VALHALLA ⚔</button>
     <div id="login-error">⚠ Os deuses exigem teu nome, guerreiro!</div>
     <div class="guest-link" onclick="handleGuest()">Continuar como Errante Sem Nome</div>
@@ -192,7 +188,9 @@ const sx=sc.getContext('2d');
 function rsz(){sc.width=window.innerWidth;sc.height=window.innerHeight;}rsz();
 window.addEventListener('resize',rsz);
 const stars=Array.from({length:220},()=>({x:Math.random(),y:Math.random()*0.62,r:Math.random()*1.5+0.3,tw:Math.random()*Math.PI*2,sp:0.4+Math.random()*1.6}));
+let starsActive=true;
 function drawStars(t){
+  if(!starsActive)return;
   sx.clearRect(0,0,sc.width,sc.height);
   stars.forEach(s=>{
     const a=Math.max(0,0.38+Math.sin(t*s.sp+s.tw)*0.36);
@@ -203,7 +201,7 @@ function drawStars(t){
 }drawStars(0);
 
 // ── Login Logic ──
-let playerName='',playerClan='';
+let playerName='';
 const loadMsgs=['Forjando as longhouses...','Acendendo as fogueiras...','Despertando o drakkar...','Esculpindo runas antigas...','Invocando os espíritos...','Preparando o banquete...','Valhalla te aguarda!'];
 
 function handleLogin(){
@@ -212,12 +210,10 @@ function handleLogin(){
   if(!n){err.style.display='block';return;}
   err.style.display='none';
   playerName=n;
-  playerClan=document.getElementById('clan-name').value.trim()||'Sem Clã';
   startLoading();
 }
-function handleGuest(){playerName='Errante';playerClan='Sem Clã';startLoading();}
+function handleGuest(){playerName='Errante';startLoading();}
 document.getElementById('viking-name').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
-document.getElementById('clan-name').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 
 function startLoading(){
   const fade=document.getElementById('fade-overlay');
@@ -225,7 +221,7 @@ function startLoading(){
   setTimeout(()=>{
     document.getElementById('login-screen').style.display='none';
     const ls=document.getElementById('loading-screen');ls.style.display='flex';
-    document.getElementById('loading-welcome').textContent=`Bem-vindo, ${playerName} do Clã ${playerClan}`;
+    document.getElementById('loading-welcome').textContent=`Bem-vindo, ${playerName}!`;
     fade.classList.remove('visible');
     let prog=0,mi=0;
     const bar=document.getElementById('loading-bar');
@@ -245,8 +241,10 @@ function enterGame(){
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('canvas-container').style.display='block';
     document.getElementById('ui-overlay').style.display='block';
-    document.getElementById('viking-name-display').textContent=`${playerName}  ·  Clã ${playerClan}`;
-    initGame();fade.classList.remove('visible');
+    document.getElementById('viking-name-display').textContent=playerName;
+    starsActive=false;
+    startViking();
+    fade.classList.remove('visible');
   },580);
 }
 
@@ -257,24 +255,28 @@ function handleLogout(){
     document.getElementById('ui-overlay').style.display='none';
     document.getElementById('login-screen').style.display='flex';
     document.getElementById('loading-bar').style.width='0';
+    starsActive=true;
+    drawStars(performance.now()/1000);
     fade.classList.remove('visible');
   },580);
 }
 </script>
 
-<script type="importmap">{"imports":{"three":"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"}}</script>
-<script type="module">
-import * as THREE from 'three';
-let inited=false;
-window.initGame=function(){
-  if(inited)return;inited=true;
-
+<!-- Three.js via regular script tag (not module) to avoid window scope issues -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+function startViking(){
   const container=document.getElementById('canvas-container');
+  // Clear previous renderer if any
+  container.innerHTML='';
+
   const renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.setSize(window.innerWidth,window.innerHeight);
-  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.1;
   container.appendChild(renderer.domElement);
 
   const scene=new THREE.Scene();
@@ -293,7 +295,8 @@ window.initGame=function(){
   sun.shadow.camera.right=sun.shadow.camera.top=48;
   sun.shadow.camera.far=120;sun.shadow.bias=-0.001;
   scene.add(sun);
-  scene.add(Object.assign(new THREE.DirectionalLight(0x80a0ff,0.24),{position:new THREE.Vector3(-10,8,-18)}));
+  const fill=new THREE.DirectionalLight(0x80a0ff,0.24);
+  fill.position.set(-10,8,-18);scene.add(fill);
 
   const M={
     grass:new THREE.MeshLambertMaterial({color:0x5d9e3a}),
@@ -332,38 +335,72 @@ window.initGame=function(){
     shield:new THREE.MeshLambertMaterial({color:0x8b2020}),
   };
 
-  function gm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;return m;}
+  function gm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){
+    const m=new THREE.Mesh(geo,mat);
+    m.position.set(x,y,z);m.rotation.set(rx,ry,rz);
+    m.castShadow=true;m.receiveShadow=true;return m;
+  }
   function B(w,h,d,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=gm(new THREE.BoxGeometry(w,h,d),mat,x,y,z,rx,ry,rz);scene.add(m);return m;}
   function C(rT,rB,h,seg,mat,x=0,y=0,z=0){const m=gm(new THREE.CylinderGeometry(rT,rB,h,seg),mat,x,y,z);scene.add(m);return m;}
   function S(r,w,h,mat,x=0,y=0,z=0){const m=gm(new THREE.SphereGeometry(r,w,h),mat,x,y,z);scene.add(m);return m;}
 
   // Terrain
-  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(90,90,24,24),M.grass);gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;scene.add(gnd);
-  for(let i=0;i<50;i++){const p=new THREE.Mesh(new THREE.CircleGeometry(1.2+Math.random()*2,6),M.grassDk);p.rotation.x=-Math.PI/2;p.position.set((Math.random()-.5)*66,0.01,(Math.random()-.5)*66);scene.add(p);}
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(90,90,24,24),M.grass);
+  gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;scene.add(gnd);
+  for(let i=0;i<50;i++){
+    const p=new THREE.Mesh(new THREE.CircleGeometry(1.2+Math.random()*2,6),M.grassDk);
+    p.rotation.x=-Math.PI/2;p.position.set((Math.random()-.5)*66,0.01,(Math.random()-.5)*66);scene.add(p);
+  }
 
-  function path(x1,z1,x2,z2,w=2.2){const dx=x2-x1,dz=z2-z1,len=Math.sqrt(dx*dx+dz*dz),ang=Math.atan2(dx,dz);const p=new THREE.Mesh(new THREE.PlaneGeometry(w,len),M.dirt);p.rotation.x=-Math.PI/2;p.rotation.z=-ang;p.position.set((x1+x2)/2,0.014,(z1+z2)/2);p.receiveShadow=true;scene.add(p);}
+  function path(x1,z1,x2,z2,w=2.2){
+    const dx=x2-x1,dz=z2-z1,len=Math.sqrt(dx*dx+dz*dz),ang=Math.atan2(dx,dz);
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(w,len),M.dirt);
+    p.rotation.x=-Math.PI/2;p.rotation.z=-ang;p.position.set((x1+x2)/2,0.014,(z1+z2)/2);
+    p.receiveShadow=true;scene.add(p);
+  }
   path(0,0,0,-17);path(0,0,0,17);path(0,0,-17,0);path(0,0,17,0);
   path(0,-17,-14,-17);path(0,17,14,17);path(-17,0,-17,13);path(17,0,17,-13);
   path(-17,13,-23,13);
-  const plaza=new THREE.Mesh(new THREE.CircleGeometry(4.2,12),M.dirt);plaza.rotation.x=-Math.PI/2;plaza.position.set(0,0.015,0);plaza.receiveShadow=true;scene.add(plaza);
+  const plaza=new THREE.Mesh(new THREE.CircleGeometry(4.2,12),M.dirt);
+  plaza.rotation.x=-Math.PI/2;plaza.position.set(0,0.015,0);plaza.receiveShadow=true;scene.add(plaza);
 
-  const river=new THREE.Mesh(new THREE.PlaneGeometry(7,36),M.water);river.rotation.x=-Math.PI/2;river.position.set(-23,0.06,0);scene.add(river);
-  [-4.2,4.2].forEach(dx=>{const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.6,36),M.sand);bk.rotation.x=-Math.PI/2;bk.position.set(-23+dx,0.025,0);scene.add(bk);});
+  const river=new THREE.Mesh(new THREE.PlaneGeometry(7,36),M.water);
+  river.rotation.x=-Math.PI/2;river.position.set(-23,0.06,0);scene.add(river);
+  [-4.2,4.2].forEach(dx=>{
+    const bk=new THREE.Mesh(new THREE.PlaneGeometry(2.6,36),M.sand);
+    bk.rotation.x=-Math.PI/2;bk.position.set(-23+dx,0.025,0);scene.add(bk);
+  });
 
   // Longhouses
   function longhouse(gx,gz,ry=0){
     const g=new THREE.Group();
     g.add(gm(new THREE.BoxGeometry(11,2.8,5.5),M.wood,0,1.4,0));
-    for(let i=-1;i<=1;i++){[2.76,-2.76].forEach(pz=>{g.add(gm(new THREE.BoxGeometry(2.8,1.6,0.08),M.wattle,i*3,1.3,pz));for(let j=-1;j<=1;j++)g.add(gm(new THREE.BoxGeometry(0.12,2.8,0.06),M.woodDk,i*3+j*0.9,1.4,pz));});}
+    for(let i=-1;i<=1;i++){
+      [2.76,-2.76].forEach(pz=>{
+        g.add(gm(new THREE.BoxGeometry(2.8,1.6,0.08),M.wattle,i*3,1.3,pz));
+        for(let j=-1;j<=1;j++)g.add(gm(new THREE.BoxGeometry(0.12,2.8,0.06),M.woodDk,i*3+j*0.9,1.4,pz));
+      });
+    }
     const rv=new Float32Array([-5.7,2.8,-3,5.7,2.8,-3,0,5.2,0,5.7,2.8,-3,5.7,2.8,3,0,5.2,0,5.7,2.8,3,-5.7,2.8,3,0,5.2,0,-5.7,2.8,3,-5.7,2.8,-3,0,5.2,0,-5.7,2.8,-3,-5.7,2.8,3,-5.7,5.2,0,5.7,2.8,3,5.7,2.8,-3,5.7,5.2,0]);
-    const rg=new THREE.BufferGeometry();rg.setAttribute('position',new THREE.BufferAttribute(rv,3));rg.computeVertexNormals();
+    const rg=new THREE.BufferGeometry();
+    rg.setAttribute('position',new THREE.BufferAttribute(rv,3));
+    rg.computeVertexNormals();
     const rf=new THREE.Mesh(rg,M.roof);rf.castShadow=true;g.add(rf);
     g.add(gm(new THREE.CylinderGeometry(0.08,0.08,11.6,6),M.woodDk,0,5.2,0,0,0,Math.PI/2));
-    [-5.8,5.8].forEach(px=>{const d=px>0?1:-1;g.add(gm(new THREE.BoxGeometry(0.52,0.56,0.4),M.woodDk,px,5.38,0));g.add(gm(new THREE.BoxGeometry(0.3,0.22,0.3),M.woodDk,px+d*0.28,5.22,0));g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,0.2),{rotation:new THREE.Euler(0.4,0,0.4*d)}));g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,-0.2),{rotation:new THREE.Euler(-0.4,0,0.4*d)}));});
+    [-5.8,5.8].forEach(px=>{
+      const d=px>0?1:-1;
+      g.add(gm(new THREE.BoxGeometry(0.52,0.56,0.4),M.woodDk,px,5.38,0));
+      g.add(gm(new THREE.BoxGeometry(0.3,0.22,0.3),M.woodDk,px+d*0.28,5.22,0));
+      const h1=gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,0.2);
+      h1.rotation.set(0.4,0,0.4*d);g.add(h1);
+      const h2=gm(new THREE.CylinderGeometry(0.04,0.09,0.5,5),M.woodDk,px,5.72,-0.2);
+      h2.rotation.set(-0.4,0,0.4*d);g.add(h2);
+    });
     g.add(gm(new THREE.BoxGeometry(1.2,2.2,0.08),M.woodDk,0,1.1,2.76));
     g.add(gm(new THREE.BoxGeometry(11.4,0.3,5.8),M.stoneDk,0,0.15,0));
     g.position.set(gx,0,gz);g.rotation.y=ry;
-    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+    scene.add(g);
   }
   longhouse(7,-9,0);longhouse(-7,9,Math.PI/2);longhouse(9,7,Math.PI*.15);longhouse(-10,-8,Math.PI*.85);
 
@@ -371,13 +408,19 @@ window.initGame=function(){
   function totem(gx,gz){
     const g=new THREE.Group();
     g.add(gm(new THREE.CylinderGeometry(0.18,0.24,4.6,8),M.wood,0,2.3,0));
-    [1,2.2,3.3].forEach(y=>{g.add(gm(new THREE.BoxGeometry(0.65,0.5,0.5),M.woodDk,0,y,0.12));[-0.2,0.2].forEach(dx=>g.add(Object.assign(gm(new THREE.CylinderGeometry(0.04,0.09,0.42,5),M.woodDk,dx,y+0.32,0.1),{rotation:new THREE.Euler(0,0,dx>0?-0.5:0.5)})));});
+    [1,2.2,3.3].forEach(y=>{
+      g.add(gm(new THREE.BoxGeometry(0.65,0.5,0.5),M.woodDk,0,y,0.12));
+      [-0.2,0.2].forEach(dx=>{
+        const h=gm(new THREE.CylinderGeometry(0.04,0.09,0.42,5),M.woodDk,dx,y+0.32,0.1);
+        h.rotation.z=dx>0?-0.5:0.5;g.add(h);
+      });
+    });
     g.add(gm(new THREE.CylinderGeometry(0.07,0.07,0.65,6),M.wood,0.34,4.0,0));
     const fl=gm(new THREE.ConeGeometry(0.14,0.42,6),M.fire,0.34,4.32,0);g.add(fl);
     const fl2=gm(new THREE.ConeGeometry(0.06,0.22,5),M.fireIn,0.34,4.46,0);g.add(fl2);
     const pt=new THREE.PointLight(0xff8820,1.4,6);pt.position.set(0.34,4.32,0);g.add(pt);
-    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});scene.add(g);
-    return{fl,fl2,pt};
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});
+    scene.add(g);return{fl,fl2,pt};
   }
   const totems=[totem(3.5,3.5),totem(-3.5,-3.5),totem(14,-4),totem(-12,6)];
 
@@ -389,8 +432,8 @@ window.initGame=function(){
     [0.5,-0.5].forEach(rz=>{const d=gm(new THREE.BoxGeometry(0.52,0.06,0.07),M.runeGlow,0,1.98,0.3);d.rotation.z=rz;g.add(d);});
     g.add(gm(new THREE.BoxGeometry(1.8,0.28,0.9),M.stoneDk,0,0.14,0));
     const gl=new THREE.PointLight(0x40ff80,0.85,4.5);gl.position.set(0,1.5,0.4);g.add(gl);
-    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
-    return gl;
+    g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+    scene.add(g);return gl;
   }
   const runeLight=runeStone(0,0);
 
@@ -408,8 +451,8 @@ window.initGame=function(){
     [-0.35,0,0.35].forEach(dz=>g.add(gm(new THREE.BoxGeometry(0.28,0.55,0.06),M.metal,1.95,1.85,dz-0.4)));
     g.add(gm(new THREE.CylinderGeometry(0.18,0.22,1.6,8),M.stone,-0.5,3.5,0));
     g.position.set(gx,0,gz);g.rotation.y=ry;
-    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
-    return fg;
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+    scene.add(g);return fg;
   }
   const forgeGlow=forge(-10,-7,Math.PI*.1);
 
@@ -420,16 +463,29 @@ window.initGame=function(){
     const bw=gm(new THREE.CylinderGeometry(0.18,2.5,1,8),M.boat,0,0.42,6);bw.rotation.x=Math.PI/2;g.add(bw);
     const st=gm(new THREE.CylinderGeometry(0.18,2.5,0.9,8),M.boat,0,0.42,-6);st.rotation.x=-Math.PI/2;g.add(st);
     [-2.7,2.7].forEach(dx=>g.add(gm(new THREE.BoxGeometry(0.16,0.22,12),M.woodDk,dx,0.95,0)));
-    [-4,-2,0,2,4].forEach(dz=>{g.add(Object.assign(gm(new THREE.CylinderGeometry(0.5,0.5,0.1,8),M.shield,2.8,1.06,dz),{rotation:new THREE.Euler(Math.PI/2,0,0)}));g.add(gm(new THREE.SphereGeometry(0.14,6,4),M.metal,2.8,1.06,dz));});
+    [-4,-2,0,2,4].forEach(dz=>{
+      const sh=gm(new THREE.CylinderGeometry(0.5,0.5,0.1,8),M.shield,2.8,1.06,dz);
+      sh.rotation.x=Math.PI/2;g.add(sh);
+      g.add(gm(new THREE.SphereGeometry(0.14,6,4),M.metal,2.8,1.06,dz));
+    });
     g.add(gm(new THREE.CylinderGeometry(0.1,0.13,5.5,6),M.woodDk,0,3.55,0));
-    g.add(Object.assign(gm(new THREE.PlaneGeometry(3.8,3.6),M.sail,0,3.6,0),{rotation:new THREE.Euler(0,Math.PI/2,0)}));
-    [-0.9,0,0.9].forEach(dy=>g.add(Object.assign(gm(new THREE.PlaneGeometry(3.8,0.3),M.sailRed,0,3.6+dy,-0.01),{rotation:new THREE.Euler(0,Math.PI/2,0)})));
+    const sail=gm(new THREE.PlaneGeometry(3.8,3.6),M.sail,0,3.6,0);sail.rotation.y=Math.PI/2;g.add(sail);
+    [-0.9,0,0.9].forEach(dy=>{
+      const sr=gm(new THREE.PlaneGeometry(3.8,0.3),M.sailRed,0,3.6+dy,-0.01);sr.rotation.y=Math.PI/2;g.add(sr);
+    });
     g.add(gm(new THREE.BoxGeometry(0.65,0.65,0.85),M.woodDk,0,1.7,7));
     g.add(gm(new THREE.BoxGeometry(0.32,0.26,0.5),M.woodDk,0,1.48,7.5));
-    [-0.28,0.28].forEach(dx=>{const h=gm(new THREE.CylinderGeometry(0.04,0.1,0.52,5),M.woodDk,dx,2.1,7);h.rotation.z=dx>0?-0.45:0.45;g.add(h);});
-    [-2,2].forEach(dz=>{const o=gm(new THREE.CylinderGeometry(0.05,0.05,4.2,5),M.wood,2.9,0.4,dz);o.rotation.z=Math.PI*.35;g.add(o);});
+    [-0.28,0.28].forEach(dx=>{
+      const h=gm(new THREE.CylinderGeometry(0.04,0.1,0.52,5),M.woodDk,dx,2.1,7);
+      h.rotation.z=dx>0?-0.45:0.45;g.add(h);
+    });
+    [-2,2].forEach(dz=>{
+      const o=gm(new THREE.CylinderGeometry(0.05,0.05,4.2,5),M.wood,2.9,0.4,dz);
+      o.rotation.z=Math.PI*.35;g.add(o);
+    });
     g.position.set(gx,0.12,gz);g.rotation.y=ry;
-    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});scene.add(g);
+    g.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+    scene.add(g);
   }
   drakkar(-21,4,Math.PI/2);
 
@@ -437,7 +493,10 @@ window.initGame=function(){
   function pine(gx,gz,sc=1){
     const g=new THREE.Group();
     g.add(gm(new THREE.CylinderGeometry(0.14*sc,0.2*sc,2.2*sc,6),M.trunk,0,sc*1.1,0));
-    [[1.5,1.9],[1.1,2.7],[0.7,3.3],[0.4,3.8]].forEach(([r,y],i)=>{g.add(gm(new THREE.ConeGeometry(r*sc,r*1.3*sc,7),M.leaves,0,y*sc,0));if(i<2)g.add(gm(new THREE.ConeGeometry(r*.65*sc,r*.8*sc,6),M.leavesDk,0,(y+r*.4)*sc,0));});
+    [[1.5,1.9],[1.1,2.7],[0.7,3.3],[0.4,3.8]].forEach(([r,y],i)=>{
+      g.add(gm(new THREE.ConeGeometry(r*sc,r*1.3*sc,7),M.leaves,0,y*sc,0));
+      if(i<2)g.add(gm(new THREE.ConeGeometry(r*.65*sc,r*.8*sc,6),M.leavesDk,0,(y+r*.4)*sc,0));
+    });
     g.add(gm(new THREE.ConeGeometry(0.45*sc,0.4*sc,7),M.snow,0,4.2*sc,0));
     g.position.set(gx,0,gz);g.traverse(c=>{if(c.isMesh)c.castShadow=true;});scene.add(g);
   }
@@ -458,9 +517,13 @@ window.initGame=function(){
   // Campfires
   function campfire(gx,gz){
     const g=new THREE.Group();
-    for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const s=gm(new THREE.BoxGeometry(0.3,0.2,0.2),M.stone,Math.cos(a)*.52,.1,Math.sin(a)*.52);s.rotation.y=a;g.add(s);}
-    g.add(Object.assign(gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0,0.05,0.2),{rotation:new THREE.Euler(Math.PI/2,0,0)}));
-    g.add(Object.assign(gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0.2,0.05,0),{rotation:new THREE.Euler(0,0,Math.PI/2)}));
+    for(let i=0;i<6;i++){
+      const a=i/6*Math.PI*2;
+      const s=gm(new THREE.BoxGeometry(0.3,0.2,0.2),M.stone,Math.cos(a)*.52,.1,Math.sin(a)*.52);
+      s.rotation.y=a;g.add(s);
+    }
+    const log1=gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0,0.05,0.2);log1.rotation.x=Math.PI/2;g.add(log1);
+    const log2=gm(new THREE.CylinderGeometry(0.06,0.08,1.1,6),M.trunk,0.2,0.05,0);log2.rotation.z=Math.PI/2;g.add(log2);
     const fl=gm(new THREE.ConeGeometry(0.22,0.56,7),M.fire,0,.46,0);g.add(fl);
     const fl2=gm(new THREE.ConeGeometry(0.1,0.32,6),M.fireIn,0,.62,0);g.add(fl2);
     const pt=new THREE.PointLight(0xff8820,2.0,8);pt.position.set(0,.56,0);g.add(pt);
@@ -470,12 +533,24 @@ window.initGame=function(){
   const fires=[campfire(-2,2),campfire(6,-13),campfire(-14,14)];
 
   // Barrels & crates
-  [[3,-6.5],[3.9,-6.5],[4.8,-6.5],[11,-3.5],[11.8,-3.5]].forEach(([x,z])=>{C(.36,.36,.72,10,M.barrel,x,.36,z);C(.38,.38,.06,10,M.woodDk,x,.15,z);C(.38,.38,.06,10,M.woodDk,x,.57,z);});
-  [[-7.5,11],[-6.7,11],[-7.5,11.8]].forEach(([x,z])=>{B(.85,.85,.85,M.wood,x,.42,z);B(.87,.1,.87,M.woodDk,x,.04,z);B(.87,.1,.87,M.woodDk,x,.8,z);B(.1,.85,.87,M.woodDk,x+.38,.42,z);});
+  [[3,-6.5],[3.9,-6.5],[4.8,-6.5],[11,-3.5],[11.8,-3.5]].forEach(([x,z])=>{
+    C(.36,.36,.72,10,M.barrel,x,.36,z);
+    C(.38,.38,.06,10,M.woodDk,x,.15,z);
+    C(.38,.38,.06,10,M.woodDk,x,.57,z);
+  });
+  [[-7.5,11],[-6.7,11],[-7.5,11.8]].forEach(([x,z])=>{
+    B(.85,.85,.85,M.wood,x,.42,z);
+    B(.87,.1,.87,M.woodDk,x,.04,z);
+    B(.87,.1,.87,M.woodDk,x,.8,z);
+    B(.1,.85,.87,M.woodDk,x+.38,.42,z);
+  });
 
   // Viking character
   const viking=new THREE.Group();
-  function vm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;return m;}
+  function vm(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0){
+    const m=new THREE.Mesh(geo,mat);
+    m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;return m;
+  }
   const legL=vm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,-.14,.27,0);
   const legR=vm(new THREE.BoxGeometry(.23,.55,.23),M.cloth,.14,.27,0);
   viking.add(legL,legR);
@@ -498,7 +573,10 @@ window.initGame=function(){
   viking.add(vm(new THREE.BoxGeometry(.42,.22,.14),M.hair,0,1.6,-.2));
   viking.add(vm(new THREE.BoxGeometry(.5,.22,.48),M.metal,0,1.74,0));
   const htop=vm(new THREE.SphereGeometry(.27,8,6),M.metal,0,1.78,0);htop.scale.y=.72;viking.add(htop);
-  [-.28,.28].forEach(dx=>{const h=vm(new THREE.CylinderGeometry(.04,.1,.52,6),M.metalSh,dx,1.85,0);h.rotation.z=dx>0?-.5:.5;h.rotation.x=.2;viking.add(h);});
+  [-.28,.28].forEach(dx=>{
+    const h=vm(new THREE.CylinderGeometry(.04,.1,.52,6),M.metalSh,dx,1.85,0);
+    h.rotation.z=dx>0?-.5:.5;h.rotation.x=.2;viking.add(h);
+  });
   viking.add(vm(new THREE.CylinderGeometry(.04,.04,.85,5),M.wood,-.19,.9,-.22,0,0,.2));
   viking.add(vm(new THREE.BoxGeometry(.28,.38,.08),M.metal,-.23,1.26,-.22));
   viking.add(vm(new THREE.BoxGeometry(.08,.38,.05),new THREE.MeshLambertMaterial({color:0xcccccc}),-.32,1.26,-.22));
@@ -509,15 +587,18 @@ window.initGame=function(){
   const cloudMat=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.88});
   function cloud(x,y,z,sc=1){
     const g=new THREE.Group();
-    [[0,0,0,1.6],[1.3,.2,0,1.1],[-1.3,0,0,1.0],[.6,.35,-.9,.85],[-.5,.25,.9,.78]].forEach(([cx,cy,cz,r])=>{const c=new THREE.Mesh(new THREE.SphereGeometry(r*sc,7,5),cloudMat);c.position.set(cx*sc,cy*sc,cz*sc);g.add(c);});
+    [[0,0,0,1.6],[1.3,.2,0,1.1],[-1.3,0,0,1.0],[.6,.35,-.9,.85],[-.5,.25,.9,.78]].forEach(([cx,cy,cz,r])=>{
+      const c=new THREE.Mesh(new THREE.SphereGeometry(r*sc,7,5),cloudMat);
+      c.position.set(cx*sc,cy*sc,cz*sc);g.add(c);
+    });
     g.position.set(x,y,z);scene.add(g);return g;
   }
   const clouds=[cloud(10,19,-5),cloud(-13,21,8),cloud(5,23,15),cloud(-8,20,-13),cloud(20,22,0),cloud(-2,18,22),cloud(24,-3,12)];
 
   // Controls
   const keys={};
-  window.addEventListener('keydown',e=>keys[e.key]=true);
-  window.addEventListener('keyup',e=>keys[e.key]=false);
+  window.addEventListener('keydown',e=>{keys[e.key]=true;});
+  window.addEventListener('keyup',e=>{keys[e.key]=false;});
   document.querySelectorAll('.pad-btn').forEach(btn=>{
     const dir=btn.dataset.dir;
     btn.addEventListener('touchstart',e=>{e.preventDefault();keys['_'+dir]=true;},{passive:false});
@@ -527,12 +608,15 @@ window.initGame=function(){
   });
 
   const SPEED=5;let vikingAngle=0,walkPhase=0;
-  const CAM=new THREE.Vector3(28,28,28);const camT=new THREE.Vector3(28,28,28);
+  const CAM_OFFSET=new THREE.Vector3(28,28,28);
+  const camPos=new THREE.Vector3(28,28,28);
   let lastTs=0;
+  let animId=null;
 
   function animate(ts){
-    requestAnimationFrame(animate);
-    const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;const t=ts/1000;
+    animId=requestAnimationFrame(animate);
+    const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
+    const t=ts/1000;
     let dx=0,dz=0;
     if(keys['ArrowUp']||keys['w']||keys['W']||keys['_forward'])dz-=1;
     if(keys['ArrowDown']||keys['s']||keys['S']||keys['_backward'])dz+=1;
@@ -542,38 +626,55 @@ window.initGame=function(){
     if(moving){
       const ta=Math.atan2(dx,dz);let diff=ta-vikingAngle;
       while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
-      vikingAngle+=diff*Math.min(dt*14,1);viking.rotation.y=vikingAngle;
+      vikingAngle+=diff*Math.min(dt*14,1);
+      viking.rotation.y=vikingAngle;
       const l=Math.sqrt(dx*dx+dz*dz);
       viking.position.x=Math.max(-27,Math.min(27,viking.position.x+dx/l*SPEED*dt));
       viking.position.z=Math.max(-27,Math.min(27,viking.position.z+dz/l*SPEED*dt));
       walkPhase+=dt*10;
-      legL.rotation.x=Math.sin(walkPhase)*.52;legR.rotation.x=-Math.sin(walkPhase)*.52;
-      armL.rotation.x=-Math.sin(walkPhase)*.42;armR.rotation.x=Math.sin(walkPhase)*.42;
+      legL.rotation.x=Math.sin(walkPhase)*.52;
+      legR.rotation.x=-Math.sin(walkPhase)*.52;
+      armL.rotation.x=-Math.sin(walkPhase)*.42;
+      armR.rotation.x=Math.sin(walkPhase)*.42;
       viking.position.y=Math.abs(Math.sin(walkPhase))*.044;
     }else{
       torso.position.y=.85+Math.sin(t*1.4)*.012;
       legL.rotation.x=0;legR.rotation.x=0;armL.rotation.x=0;armR.rotation.x=0;
     }
     const vp=viking.position;
-    camT.lerp(new THREE.Vector3(vp.x+CAM.x,CAM.y,vp.z+CAM.z),dt*4);
-    camera.position.copy(camT);camera.lookAt(vp.x,1,vp.z);
+    const targetCam=new THREE.Vector3(vp.x+CAM_OFFSET.x,CAM_OFFSET.y,vp.z+CAM_OFFSET.z);
+    camPos.lerp(targetCam,dt*4);
+    camera.position.copy(camPos);
+    camera.lookAt(vp.x,1,vp.z);
+
     const needle=document.getElementById('compass-needle');
     if(needle)needle.setAttribute('transform',`rotate(${THREE.MathUtils.radToDeg(-vikingAngle)},36,36)`);
-    fires.forEach(({fl,fl2,pt},i)=>{const f=Math.sin(t*8+i*2.3)*.18+Math.sin(t*13+i)*.09;fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.9+f*1.8;});
-    totems.forEach(({fl,fl2,pt},i)=>{const f=Math.sin(t*9+i*3.1)*.15;fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.3+f*1.2;});
+
+    fires.forEach(({fl,fl2,pt},i)=>{
+      const f=Math.sin(t*8+i*2.3)*.18+Math.sin(t*13+i)*.09;
+      fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.9+f*1.8;
+    });
+    totems.forEach(({fl,fl2,pt},i)=>{
+      const f=Math.sin(t*9+i*3.1)*.15;
+      fl.scale.y=1+f;fl2.scale.y=1+f*.5;pt.intensity=1.3+f*1.2;
+    });
     forgeGlow.intensity=2.0+Math.sin(t*7)*.6;
     runeLight.intensity=0.7+Math.sin(t*2.2)*.35;
     river.position.y=.06+Math.sin(t*.7)*.018;
     clouds.forEach((c,i)=>c.position.x+=Math.sin(t*.08+i)*.007);
+
     renderer.render(scene,camera);
   }
+
   requestAnimationFrame(animate);
 
   window.addEventListener('resize',()=>{
-    const a=window.innerWidth/window.innerHeight;camera.left=-cs*a;camera.right=cs*a;
-    camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);
+    const a=window.innerWidth/window.innerHeight;
+    camera.left=-cs*a;camera.right=cs*a;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
   });
-};
+}
 </script>
 </body>
 </html>
